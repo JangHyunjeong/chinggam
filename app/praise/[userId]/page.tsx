@@ -26,9 +26,25 @@ export default function PraisePage({ params }: { params: Promise<{ userId: strin
   const [supabase] = useState(() => createClient());
 
   
+  const [targetName, setTargetName] = useState<string | null>(null);
+
+  // ... (existing state)
+
   useEffect(() => {
     const checkUser = async () => {
       try {
+        // 1. Fetch Target User (Receiver) Info
+        const { data: targetUser, error: targetError } = await supabase
+            .from("users")
+            .select("nickname")
+            .eq("id", userId)
+            .single();
+        
+        if (targetUser) {
+            setTargetName(targetUser.nickname);
+        }
+
+        // 2. Check Current Viewer Auth
         const { data: { user }, error } = await supabase.auth.getUser();
         
         if (error) {
@@ -140,11 +156,21 @@ export default function PraisePage({ params }: { params: Promise<{ userId: strin
         </div>
       )}
 
+      {/* Persistent Header for Target Name */}
+      {!loading && targetName && step !== -1 && (
+        <div className="w-full text-center mb-6 animate-in fade-in slide-in-from-top-4">
+            <div className="inline-block px-6 py-2 bg-black text-white rounded-full text-lg font-bold shadow-md">
+                🎯 칭찬 타겟: <span className="text-[#FEE500]">{targetName}</span>
+            </div>
+        </div>
+      )}
+
       {/* Step 0: Login / Guest Interstitial */}
       {!loading && step === 0 && (
         <div className="space-y-8 animate-in zoom-in duration-300 text-center">
              <div className="space-y-4">
                 <div className="text-6xl animate-bounce">🗝️</div>
+                
                 <h1 className="text-3xl font-black">칭찬으로 혼내주러 입장</h1>
                 <p className="text-lg text-gray-600">
                     친구를 칭찬으로 혼내주려면<br/>
@@ -347,7 +373,7 @@ export default function PraisePage({ params }: { params: Promise<{ userId: strin
         <div className="text-center space-y-6 animate-in zoom-in duration-500">
           <div className="text-6xl">🚔</div>
           <h1 className="text-3xl font-black">혼쭐냄!</h1>
-          <p>접수된 증거로 인해<br/>친구가 칭찬 감옥에서 못 나오게 되었습니다.</p>
+          <p>접수된 증거로 인해<br/>{targetName || '친구'}님이 칭찬 감옥에서 못 나오게 되었습니다.</p>
           
           <Button 
             className="w-full h-14 text-lg bg-[#FEE500] text-black border-black hover:bg-[#FDD835]"
