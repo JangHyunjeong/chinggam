@@ -207,7 +207,7 @@ export default function DashboardPage() {
                 base64Content += '=';
              }
 
-             const base64Decoded = atob(base64Content);
+             const base64Decoded = Buffer.from(base64Content, 'base64').toString('utf-8');
              const sessionData = JSON.parse(base64Decoded);
              
              if (sessionData && sessionData.access_token && sessionData.refresh_token) {
