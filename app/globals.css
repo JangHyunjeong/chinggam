@@ -1,0 +1,19 @@
+@import "tailwindcss";
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  --font-mono: var(--font-mono);
+  --color-primary: #f97316; /* orange-500 */
+}
+
+/* Custom Neo-Brutalism Utilities */
+@utility shadow-hard {
+  box-shadow: 4px 4px 0px 0px #000000;
+}
+
+@layer base {
+  body {
+    @apply bg-gray-100 text-black font-sans;
+  }
+}
