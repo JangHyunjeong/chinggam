@@ -8,7 +8,6 @@ async function updateSession(request: NextRequest) {
     },
   });
 
-
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -25,15 +24,14 @@ async function updateSession(request: NextRequest) {
           });
           
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, { ...options, httpOnly: false, secure: false })
+            response.cookies.set(name, value, options)
           );
         },
       },
     },
   );
 
-  // This will refresh session if expired - required for Server Components
-  // https://supabase.com/docs/guides/auth/server-side/nextjs
+  // refreshing the auth token
   await supabase.auth.getUser();
 
   return response;
