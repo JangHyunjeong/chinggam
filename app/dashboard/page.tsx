@@ -196,9 +196,17 @@ export default function DashboardPage() {
            try {
              const cookieValue = authCookie.split('=')[1];
              const decodedValue = decodeURIComponent(cookieValue);
-             const base64Content = decodedValue.replace('base64-', '');
-
+             let base64Content = decodedValue.replace('base64-', '');
              
+             // Fix: Handle Base64-URL to standard Base64 conversion
+             // Replace '-' with '+' and '_' with '/'
+             base64Content = base64Content.replace(/-/g, '+').replace(/_/g, '/');
+
+             // Add padding if needed
+             while (base64Content.length % 4) {
+                base64Content += '=';
+             }
+
              const base64Decoded = atob(base64Content);
              const sessionData = JSON.parse(base64Decoded);
              
