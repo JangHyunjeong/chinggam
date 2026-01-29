@@ -73,9 +73,14 @@ export async function GET(request: NextRequest) {
           
           const cookieName = `sb-${projectRef}-auth-token`;
           
-          // Use Buffer to handle UTF-8 characters (Korean nicknames) correctly. btoa fails with non-Latin1.
+          // Use Buffer to handle UTF-8 characters (Korean nicknames) correctly.
           const sessionString = JSON.stringify(data.session);
-          const base64Session = Buffer.from(sessionString).toString('base64');
+          // Fix: Generate URL-Safe Base64 to prevent Vercel/Middleware errors
+          const base64Session = Buffer.from(sessionString).toString('base64')
+              .replace(/\+/g, '-')
+              .replace(/\//g, '_')
+              .replace(/=+$/, '');
+              
           const cookieValue = `base64-${base64Session}`;
           cookiesToSetLater.push({
               name: cookieName,

@@ -32,7 +32,19 @@ async function updateSession(request: NextRequest) {
   );
 
   // refreshing the auth token
-  await supabase.auth.getUser();
+  try {
+    await supabase.auth.getUser();
+  } catch (error) {
+    console.error("Middleware Auth Error:", error);
+    // If auth fails due to malformed cookies (Base64 error), clear them to prevent 500 crash.
+    const allCookies = request.cookies.getAll();
+    allCookies.forEach((cookie) => {
+        if (cookie.name.startsWith("sb-")) {
+            response.cookies.delete(cookie.name);
+            request.cookies.delete(cookie.name);
+        }
+    });
+  }
 
   return response;
 }
