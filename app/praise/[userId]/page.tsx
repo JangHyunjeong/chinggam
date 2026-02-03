@@ -401,7 +401,7 @@ export default function PraisePage({ params }: { params: Promise<{ userId: strin
           <p>
             접수된 증거로 인해
             <br />
-            {targetName + '님이' || '친구가'} 칭찬 감옥에서 못 나오게 되었습니다.
+            {targetName ? targetName + '님이' : '친구가'} 칭찬 감옥에서 못 나오게 되었습니다.
           </p>
 
           <Button
