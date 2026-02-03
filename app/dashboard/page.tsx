@@ -335,7 +335,6 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen p-4 pb-20 max-w-2xl mx-auto space-y-12">
-      {/* Header (same as before) */}
       <header className="flex justify-between items-center py-4 border-b-2 border-black">
         <div className="font-bold text-lg flex items-center">
           <div className="flex align-center gap-2">
@@ -363,7 +362,12 @@ export default function DashboardPage() {
 
       {/* Strength Cloud */}
       <section className="space-y-6">
-        <h2 className="text-2xl font-black">👀 친구들이 증명한 나의 장점</h2>
+        <h2 className="text-2xl font-black flex items-center gap-2">
+          👀 친구들이 증명한 나의 장점
+          <span className="text-gray-400 text-lg font-normal">
+            ({keywords.length})
+          </span>
+        </h2>
         <div className="flex flex-wrap gap-3 min-h-[100px] content-start">
           {keywords.length > 0 ? (
             <>
@@ -413,8 +417,13 @@ export default function DashboardPage() {
       {/* Praise List */}
       <section className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-end gap-2 border-b-2 border-dashed border-gray-300 pb-4">
-          <h2 className="text-2xl font-black">
-            {activeTab === "received" ? "💝 받은 메세지" : "📤 보낸 메세지"}
+          <h2 className="text-2xl font-black flex items-center gap-2">
+            <span>
+              {activeTab === "received" ? "💝 받은 메세지" : "📤 보낸 메세지"}
+            </span>
+            <span className="text-gray-400 text-lg font-normal">
+              ({activeTab === "received" ? praises.length : sentPraises.length})
+            </span>
           </h2>
           <div className="flex gap-3">
             <Button
