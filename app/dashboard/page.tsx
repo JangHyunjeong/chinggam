@@ -518,6 +518,18 @@ export default function DashboardPage() {
             <span className="animate-spin text-2xl">⛓️</span>
           </div>
         )}
+
+        {/* End of List Indicator */}
+        {((activeTab === "received" &&
+          praises.length > 0 &&
+          visibleCount >= praises.length) ||
+          (activeTab === "sent" &&
+            sentPraises.length > 0 &&
+            visibleCount >= sentPraises.length)) && (
+          <div className="text-center py-8 text-gray-400 font-medium text-sm animate-in fade-in slide-in-from-bottom-2">
+            마지막 메세지 입니다.
+          </div>
+        )}
       </section>
 
       {/* Detail Modal */}
