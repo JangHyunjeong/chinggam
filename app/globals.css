@@ -1,8 +1,11 @@
-@import "tailwindcss";
-@import "tailwindcss";
+@import 'tailwindcss';
+@import 'tailwindcss';
 
 @theme {
-  --font-sans: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  --font-sans:
+    'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto,
+    'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic',
+    'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
   --font-mono: var(--font-mono);
   --color-primary: #f97316; /* orange-500 */
 }
@@ -14,6 +17,6 @@
 
 @layer base {
   body {
-    @apply bg-gray-100 text-black font-sans;
+    @apply bg-gray-100 font-sans text-black;
   }
 }
