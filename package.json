@@ -6,14 +6,22 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint --cache .",
+    "format": "prettier --cache --write .",
+    "postinstall": "husky install",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.91.0",
+    "@typescript-eslint/eslint-plugin": "^8.54.0",
+    "@typescript-eslint/parser": "^8.54.0",
     "clsx": "^2.1.1",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
     "lucide-react": "^0.562.0",
     "next": "16.1.4",
+    "prettier": "^3.8.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "tailwind-merge": "^3.4.0"
@@ -23,9 +31,20 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "eslint": "^9",
+    "eslint": "^9.39.2",
     "eslint-config-next": "16.1.4",
+    "husky": "^8.0.0",
+    "lint-staged": "^16.2.7",
+    "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "lint-staged": {
+    "*.{js,ts,d.ts,tsx,jsx,json,md}": [
+      "prettier --write"
+    ],
+    "*.{json,md,css,scss}": [
+      "prettier --write"
+    ]
   }
 }
