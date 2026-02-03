@@ -1,9 +1,9 @@
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 export default function AuthCodeError() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-6 text-center space-y-4">
+    <div className="flex min-h-screen flex-col items-center justify-center space-y-4 p-6 text-center">
       <div className="text-6xl">😱</div>
       <h1 className="text-2xl font-black">로그인 실패!</h1>
       <p className="text-gray-600">
@@ -15,5 +15,5 @@ export default function AuthCodeError() {
         <Button className="font-bold">다시 로그인 하러 가기</Button>
       </Link>
     </div>
-  );
+  )
 }
