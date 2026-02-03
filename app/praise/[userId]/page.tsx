@@ -60,7 +60,7 @@ export default function PraisePage({ params }: { params: Promise<{ userId: strin
 
         if (user) {
           if (user.id === userId) {
-            setStep(-1)
+            router.replace('/dashboard')
             return
           }
           setStep(4)
@@ -401,7 +401,7 @@ export default function PraisePage({ params }: { params: Promise<{ userId: strin
           <p>
             접수된 증거로 인해
             <br />
-            {targetName || '친구'}님이 칭찬 감옥에서 못 나오게 되었습니다.
+            {targetName + '님이' || '친구가'} 칭찬 감옥에서 못 나오게 되었습니다.
           </p>
 
           <Button
@@ -435,20 +435,6 @@ export default function PraisePage({ params }: { params: Promise<{ userId: strin
         </div>
       )}
 
-      {step === -1 && (
-        <div className="animate-in zoom-in mb-10 flex w-full flex-grow flex-col items-center justify-center space-y-6 duration-500">
-          <Card className="w-full space-y-2 border-dashed border-red-500 bg-red-50 p-6 text-center">
-            <div className="animate-pulse text-6xl">🚫</div>
-            <p className="pt-2 text-lg font-bold">본인의 칭찬 감옥 링크입니다!</p>
-          </Card>
-          <Button
-            className="w-full bg-black text-white hover:bg-gray-800"
-            onClick={() => router.replace('/dashboard')}
-          >
-            내 칭찬 감옥으로 이동
-          </Button>
-        </div>
-      )}
       {alertMessage && (
         <div className="animate-in fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 duration-300">
           <Card className="shadow-hard w-full max-w-sm space-y-4 border-2 border-black bg-white p-6 text-center">
