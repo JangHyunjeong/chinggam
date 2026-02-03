@@ -82,7 +82,6 @@ export default function DashboardPage() {
         const sortedKeywords = Object.entries(counts)
           .sort(([, a], [, b]) => b - a)
           .map(([key]) => key)
-          .slice(0, 15)
 
         setKeywords(sortedKeywords)
       } else {
@@ -158,6 +157,7 @@ export default function DashboardPage() {
 
     const finalizeLoad = async (userObj: { id: string; email?: string } | null) => {
       clearLoadingTimer()
+      setError(null)
 
       if (userObj) {
         setUser({
@@ -179,90 +179,59 @@ export default function DashboardPage() {
     }
 
     const initUser = async () => {
-      const checkCookieAndHydrate = async () => {
-        const cookies = document.cookie.split(';')
+      // Helper: Run an auth promise with 2s timeout and safe error handling
+      const safeAuth = async <T,>(
+        promise: Promise<T>,
+        selector: (data: T) => { id: string; email?: string } | null | undefined,
+      ) => {
+        try {
+          const result = await Promise.race([
+            promise,
+            new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000)),
+          ])
+          if (!result) return null
+          return selector(result) ?? null
+        } catch {
+          return null
+        }
+      }
 
-        const authCookie = cookies.find((c) => c.trim().includes('-auth-token='))
+      // Helper: Specific logic for cookie hydration
+      const tryCookieAuth = async () => {
+        try {
+          const authCookie = document.cookie
+            .split(';')
+            .find((c) => c.trim().includes('-auth-token='))
+          if (!authCookie) return null
 
-        if (authCookie) {
-          try {
-            const cookieValue = authCookie.split('=')[1]
-            const decodedValue = decodeURIComponent(cookieValue)
+          const cookieValue = authCookie.split('=').slice(1).join('=')
+          const sessionData = JSON.parse(decodeURIComponent(cookieValue))
 
-            // Previously handled base64- prefix, now we expect direct JSON
-            let sessionData
-            try {
-              sessionData = JSON.parse(decodedValue)
-            } catch (e) {
-              console.warn(
-                'Cookie parse failed. It might be an old session format. Please re-login.',
-              )
-            }
-
-            if (sessionData && sessionData.access_token && sessionData.refresh_token) {
-              const { data, error } = await supabase.auth.setSession({
+          if (sessionData?.access_token && sessionData?.refresh_token) {
+            return await safeAuth(
+              supabase.auth.setSession({
                 access_token: sessionData.access_token,
                 refresh_token: sessionData.refresh_token,
-              })
-
-              if (error) {
-                console.error('setSession failed:', error)
-              }
-
-              if (data.session?.user) {
-                await finalizeLoad({
-                  id: data.session.user.id,
-                  email: data.session.user.email,
-                })
-                return true
-              }
-            }
-          } catch (e) {
-            console.error('Manual hydration failed during parsing:', e)
+              }),
+              (data) => data.data.session?.user,
+            )
           }
-        } else {
-        }
-        return false
-      }
-
-      const {
-        data: { session },
-        error: sessionError,
-      } = await supabase.auth.getSession()
-
-      if (session?.user) {
-        await finalizeLoad({ id: session.user.id, email: session.user.email })
-        return
-      }
-
-      const hydrated = await checkCookieAndHydrate()
-      if (hydrated) return
-
-      if (session?.user) {
-        await finalizeLoad({ id: session.user.id, email: session.user.email })
-        return
-      }
-
-      const {
-        data: { user: userObj },
-      } = await supabase.auth.getUser()
-      if (userObj) {
-        await finalizeLoad({ id: userObj.id, email: userObj.email })
-        return
+        } catch {}
+        return null
       }
 
       try {
-        const {
-          data: { session: refreshedSession },
-        } = await supabase.auth.refreshSession()
-        if (refreshedSession?.user) {
-          await finalizeLoad({
-            id: refreshedSession.user.id,
-            email: refreshedSession.user.email,
-          })
-          return
-        }
-      } catch (e) {}
+        // Try all methods in order until one returns a user
+        const user =
+          (await safeAuth(supabase.auth.getSession(), (data) => data.data.session?.user)) ||
+          (await tryCookieAuth()) ||
+          (await safeAuth(supabase.auth.getUser(), (data) => data.data.user)) ||
+          (await safeAuth(supabase.auth.refreshSession(), (data) => data.data.session?.user))
+
+        await finalizeLoad(user ? { id: user.id, email: user.email } : null)
+      } catch {
+        await finalizeLoad(null)
+      }
     }
 
     initUser()
@@ -341,7 +310,10 @@ export default function DashboardPage() {
 
       {/* Strength Cloud */}
       <section className="space-y-6">
-        <h2 className="text-2xl font-black">👀 친구들이 증명한 나의 장점</h2>
+        <h2 className="flex items-center gap-2 text-2xl font-black">
+          👀 친구들이 증명한 나의 장점
+          <span className="text-lg font-normal text-gray-400">({keywords.length})</span>
+        </h2>
         <div className="flex min-h-[100px] flex-wrap content-start gap-3">
           {keywords.length > 0 ? (
             <>
@@ -350,7 +322,7 @@ export default function DashboardPage() {
                   key={i}
                   className="shadow-hard animate-in fade-in zoom-in rotate-1 transform border-2 border-black bg-white px-3 py-1 text-base font-bold duration-300"
                   style={{
-                    transform: `rotate(${Math.random() * 6 - 3}deg)`,
+                    transform: `rotate(${((i * 13) % 7) - 3}deg)`,
                     animationDelay: `${i * 50}ms`,
                   }}
                 >
@@ -387,8 +359,11 @@ export default function DashboardPage() {
       {/* Praise List */}
       <section className="space-y-6">
         <div className="flex flex-col gap-2 border-b-2 border-dashed border-gray-300 pb-4 sm:flex-row sm:items-end sm:justify-between">
-          <h2 className="text-2xl font-black">
-            {activeTab === 'received' ? '💝 받은 메세지' : '📤 보낸 메세지'}
+          <h2 className="flex items-center gap-2 text-2xl font-black">
+            <span>{activeTab === 'received' ? '💝 받은 메세지' : '📤 보낸 메세지'}</span>
+            <span className="text-lg font-normal text-gray-400">
+              ({activeTab === 'received' ? praises.length : sentPraises.length})
+            </span>
           </h2>
           <div className="flex gap-3">
             <Button
@@ -474,6 +449,16 @@ export default function DashboardPage() {
           (activeTab === 'sent' && visibleCount < sentPraises.length)) && (
           <div ref={loadMoreRef} className="flex h-10 items-center justify-center">
             <span className="animate-spin text-2xl">⛓️</span>
+          </div>
+        )}
+
+        {/* End of List Indicator */}
+        {((activeTab === 'received' && praises.length > 0 && visibleCount >= praises.length) ||
+          (activeTab === 'sent' &&
+            sentPraises.length > 0 &&
+            visibleCount >= sentPraises.length)) && (
+          <div className="animate-in fade-in slide-in-from-bottom-2 py-8 text-center text-sm font-medium text-gray-400">
+            마지막 메세지 입니다.
           </div>
         )}
       </section>
