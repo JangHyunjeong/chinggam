@@ -81,8 +81,7 @@ export default function DashboardPage() {
         // Sort by count descending and take unique keys
         const sortedKeywords = Object.entries(counts)
           .sort(([, a], [, b]) => b - a)
-          .map(([key]) => key)
-          .slice(0, 15);
+          .map(([key]) => key);
 
         setKeywords(sortedKeywords);
       } else {
