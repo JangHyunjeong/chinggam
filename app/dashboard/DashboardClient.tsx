@@ -80,7 +80,7 @@ function DashboardContent() {
         observerRef.current.disconnect()
       }
     }
-  }, [activeTab, praises.length, sentPraises.length, visibleCount])
+  }, [activeTab, praises.length, sentPraises.length])
 
   useEffect(() => {
     if (!user) return
@@ -316,7 +316,8 @@ function DashboardContent() {
   }, [targetUserId])
 
   const handleCopyPraiseLink = () => {
-    const targetId = user?.id || 'mock-user-id'
+    if (!user?.id) return
+    const targetId = user.id
     const link = `${window.location.origin}/praise/${targetId}`
     navigator.clipboard.writeText(link)
     setCopyPraiseSuccess(true)
@@ -324,7 +325,8 @@ function DashboardContent() {
   }
 
   const handleCopyDashboardLink = () => {
-    const targetId = user?.id || 'mock-user-id'
+    if (!user?.id) return
+    const targetId = user.id
     const link = `${window.location.origin}/dashboard?id=${targetId}`
     navigator.clipboard.writeText(link)
     setCopyDashboardSuccess(true)
@@ -413,7 +415,7 @@ function DashboardContent() {
       </header>
 
       {/* Private Dashboard View for Visitors */}
-      {user && !user.isOwner && user.is_public === false ? (
+      {user && !user.isOwner && !user.is_public ? (
         <div className="flex min-h-[50vh] flex-col items-center justify-center space-y-6 text-center font-mono">
           <div className="text-6xl">🔒</div>
           <div className="space-y-2">
@@ -675,6 +677,9 @@ function DashboardContent() {
             <div
               className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
               onClick={() => setSelectedPraise(null)}
+              onKeyDown={(e) => e.key === 'Escape' && setSelectedPraise(null)}
+              role="dialog"
+              aria-modal="true"
             >
               <div
                 className="shadow-hard animate-in zoom-in-95 relative w-full max-w-lg space-y-3 border-2 border-black bg-white p-6 duration-200"

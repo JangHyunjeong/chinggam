@@ -3,7 +3,7 @@ create table public.users (
   id uuid references auth.users on delete cascade not null primary key,
   nickname text not null,
   avatar_url text,
-  is_public boolean default true,
+  is_public boolean not null default false,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
