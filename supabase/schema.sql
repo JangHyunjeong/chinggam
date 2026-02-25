@@ -35,7 +35,8 @@ create policy "Users can update own profile." on public.users
 -- Praises: Public read, Public insert (for viral praises)
 create policy "Praises visibility policy" on public.praises
   for select using (
-    exists (
+    sender_id = (select auth.uid())
+    OR exists (
       select 1 from public.users u
       where u.id = receiver_id
         and (u.is_public = true OR u.id = (select auth.uid()))

@@ -630,7 +630,7 @@ function DashboardContent() {
           <section className="space-y-6">
             <div className="flex flex-col gap-2 border-b-2 border-dashed border-gray-300 pb-4 sm:flex-row sm:items-end sm:justify-between">
               <h2 className="flex items-center gap-2 text-2xl font-black">
-                <span>{activeTab === 'received' ? '💝 받은 메세지' : '📤 보낸 메세지'}</span>
+                <span>{activeTab === 'received' ? '💝 받은 메시지' : '📤 보낸 메시지'}</span>
                 <span className="text-lg font-normal text-gray-400">
                   ({activeTab === 'received' ? praises.length : sentPraises.length})
                 </span>
@@ -754,7 +754,7 @@ function DashboardContent() {
                 sentPraises.length > 0 &&
                 visibleCount >= sentPraises.length)) && (
               <div className="animate-in fade-in slide-in-from-bottom-2 py-8 text-center text-sm font-medium text-gray-400">
-                마지막 메세지 입니다.
+                마지막 메시지 입니다.
               </div>
             )}
           </section>
