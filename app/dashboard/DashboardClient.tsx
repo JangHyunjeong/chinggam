@@ -315,26 +315,34 @@ function DashboardContent() {
     }
   }, [targetUserId])
 
-  const handleCopyPraiseLink = () => {
+  const handleCopyPraiseLink = async () => {
     if (!user?.id) return
     const targetId = user.id
     const link = `${window.location.origin}/praise/${targetId}`
-    navigator.clipboard.writeText(link)
-    setCopyPraiseSuccess(true)
-    setTimeout(() => setCopyPraiseSuccess(false), 2000)
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopyPraiseSuccess(true)
+      setTimeout(() => setCopyPraiseSuccess(false), 2000)
+    } catch {
+      alert('링크 복사에 실패했습니다.')
+    }
   }
 
-  const handleCopyDashboardLink = () => {
+  const handleCopyDashboardLink = async () => {
     if (!user?.id) return
     const targetId = user.id
     const link = `${window.location.origin}/dashboard?id=${targetId}`
-    navigator.clipboard.writeText(link)
-    setCopyDashboardSuccess(true)
-    setTimeout(() => setCopyDashboardSuccess(false), 2000)
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopyDashboardSuccess(true)
+      setTimeout(() => setCopyDashboardSuccess(false), 2000)
+    } catch {
+      alert('링크 복사에 실패했습니다.')
+    }
   }
 
   const handleTogglePublic = async () => {
-    if (!user) return
+    if (!user || !user.isOwner) return
 
     const newStatus = !user.is_public
     setUser((prev) => (prev ? { ...prev, is_public: newStatus } : null))
@@ -496,8 +504,15 @@ function DashboardContent() {
                     </div>
                     <div
                       role="switch"
-                      aria-checked={user.is_public}
+                      aria-checked={!!user.is_public}
+                      tabIndex={0}
                       onClick={handleTogglePublic}
+                      onKeyDown={(e) => {
+                        if (e.key === ' ' || e.key === 'Enter') {
+                          e.preventDefault()
+                          handleTogglePublic()
+                        }
+                      }}
                       className={`relative h-7 w-12 cursor-pointer rounded-full transition-colors duration-300 ${
                         user.is_public ? 'bg-orange-500' : 'bg-gray-300'
                       }`}
@@ -574,7 +589,7 @@ function DashboardContent() {
                         setActiveTab('received')
                         setVisibleCount(5)
                       }}
-                      className={`h-8 border-2 ${activeTab === 'received' ? 'bg-orange-500 text-white hover:bg-orange-600 hover:text-white' : '!shadow-none hover:bg-gray-100'}`}
+                      className={`h-8 border-2 ${activeTab === 'received' ? 'bg-orange-500 text-white hover:bg-orange-600 hover:text-white' : 'shadow-none! hover:bg-gray-100'}`}
                     >
                       받은거
                     </Button>
@@ -585,7 +600,7 @@ function DashboardContent() {
                         setActiveTab('sent')
                         setVisibleCount(5)
                       }}
-                      className={`h-8 border-2 ${activeTab === 'sent' ? 'bg-orange-500 text-white hover:bg-orange-600 hover:text-white' : '!shadow-none hover:bg-gray-100'}`}
+                      className={`h-8 border-2 ${activeTab === 'sent' ? 'bg-orange-500 text-white hover:bg-orange-600 hover:text-white' : 'shadow-none! hover:bg-gray-100'}`}
                     >
                       보낸거
                     </Button>
