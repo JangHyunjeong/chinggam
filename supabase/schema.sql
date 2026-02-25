@@ -3,6 +3,7 @@ create table public.users (
   id uuid references auth.users on delete cascade not null primary key,
   nickname text not null,
   avatar_url text,
+  is_public boolean not null default false,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -32,8 +33,15 @@ create policy "Users can update own profile." on public.users
   for update using ((select auth.uid()) = id);
 
 -- Praises: Public read, Public insert (for viral praises)
-create policy "Praises are viewable by everyone." on public.praises
-  for select using (true);
+create policy "Praises visibility policy" on public.praises
+  for select using (
+    sender_id = (select auth.uid())
+    OR exists (
+      select 1 from public.users u
+      where u.id = receiver_id
+        and (u.is_public = true OR u.id = (select auth.uid()))
+    )
+  );
 
 create policy "Anyone can insert praises." on public.praises
   for insert with check (true);
