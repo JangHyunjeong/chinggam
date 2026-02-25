@@ -62,6 +62,10 @@ function DashboardContent() {
   const observerRef = useRef<IntersectionObserver | null>(null)
   const loadMoreRef = useRef<HTMLDivElement | null>(null)
 
+  // Detail Modal Focus Trap Ref
+  const modalRef = useRef<HTMLDivElement>(null)
+  const previousFocusRef = useRef<HTMLElement | null>(null)
+
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
       if (entries[0].isIntersecting) {
@@ -145,9 +149,11 @@ function DashboardContent() {
   }, [loading, user, error, router])
 
   useEffect(() => {
+    let active = true
     const supabase = createClient()
 
     timerRef.current = setTimeout(() => {
+      if (!active) return
       setLoading((prev) => {
         if (prev) {
           setError('로그인 정보를 불러올 수 없습니다. 다시 로그인해주세요.')
@@ -198,12 +204,14 @@ function DashboardContent() {
       currentUser: { id: string; email?: string } | null,
       targetId: string | null,
     ) => {
+      if (!active) return
       clearLoadingTimer()
       setError(null)
 
       if (targetId) {
         // [Public View] 특정 유저의 대시보드를 보는 경우
         const profile = await fetchProfile(targetId)
+        if (!active) return
         if (profile) {
           setUser({
             id: targetId,
@@ -225,6 +233,7 @@ function DashboardContent() {
         })
 
         fetchProfile(currentUser.id).then((profile) => {
+          if (!active) return
           setUser((prev) =>
             prev
               ? {
@@ -312,6 +321,7 @@ function DashboardContent() {
     })
 
     return () => {
+      active = false
       subscription.unsubscribe()
       clearLoadingTimer()
     }
@@ -363,6 +373,49 @@ function DashboardContent() {
       alert('상태 변경에 실패했습니다.')
     }
   }
+
+  useEffect(() => {
+    if (selectedPraise) {
+      previousFocusRef.current = document.activeElement as HTMLElement
+      // autoFocus on the button handles initial focus, but we need to trap it
+      const handleTabKey = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          setSelectedPraise(null)
+          return
+        }
+        if (e.key !== 'Tab') return
+        if (!modalRef.current) return
+
+        const focusableElements = modalRef.current.querySelectorAll(
+          'a[href], button, textarea, input, select',
+        )
+        const firstElement = focusableElements[0] as HTMLElement
+        const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement
+
+        if (e.shiftKey) {
+          // Shift + Tab
+          if (document.activeElement === firstElement) {
+            e.preventDefault()
+            lastElement.focus()
+          }
+        } else {
+          // Tab
+          if (document.activeElement === lastElement) {
+            e.preventDefault()
+            firstElement.focus()
+          }
+        }
+      }
+
+      document.addEventListener('keydown', handleTabKey)
+      return () => {
+        document.removeEventListener('keydown', handleTabKey)
+        if (previousFocusRef.current) {
+          previousFocusRef.current.focus()
+        }
+      }
+    }
+  }, [selectedPraise])
 
   if (loading) {
     return (
@@ -423,6 +476,7 @@ function DashboardContent() {
           )}
         </div>
       </header>
+      {/* ... (rest of the content) ... */}
 
       {/* Private Dashboard View for Visitors */}
       {user && !user.isOwner && !user.is_public ? (
@@ -617,8 +671,16 @@ function DashboardContent() {
                   praises.slice(0, visibleCount).map((praise) => (
                     <Card
                       key={praise.id}
-                      className="cursor-pointer space-y-2 transition-colors hover:bg-gray-50"
+                      role="button"
+                      tabIndex={0}
+                      className="cursor-pointer space-y-2 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-black focus:outline-none"
                       onClick={() => setSelectedPraise(praise)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          setSelectedPraise(praise)
+                        }
+                      }}
                     >
                       <div className="mb-2 text-base font-bold">#{praise.keyword}</div>
                       <p className="mb-2 line-clamp-3 min-h-[3rem] text-base font-medium whitespace-pre-wrap">
@@ -642,8 +704,16 @@ function DashboardContent() {
                 sentPraises.slice(0, visibleCount).map((praise) => (
                   <Card
                     key={praise.id}
-                    className="cursor-pointer space-y-2 bg-gray-50 transition-colors hover:bg-gray-100"
+                    role="button"
+                    tabIndex={0}
+                    className="cursor-pointer space-y-2 bg-gray-50 transition-colors hover:bg-gray-100 focus:ring-2 focus:ring-black focus:outline-none"
                     onClick={() => setSelectedPraise(praise)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        setSelectedPraise(praise)
+                      }
+                    }}
                   >
                     <div className="flex items-start justify-between">
                       <span className="box-border border-2 border-black bg-black px-3 py-0.5 text-sm font-bold text-white">
@@ -694,9 +764,9 @@ function DashboardContent() {
             <div
               className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
               onClick={() => setSelectedPraise(null)}
-              onKeyDown={(e) => e.key === 'Escape' && setSelectedPraise(null)}
             >
               <div
+                ref={modalRef}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="praise-modal-title"

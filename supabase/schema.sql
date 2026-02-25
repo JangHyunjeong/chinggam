@@ -33,7 +33,7 @@ create policy "Users can update own profile." on public.users
   for update using ((select auth.uid()) = id);
 
 -- Praises: Public read, Public insert (for viral praises)
-create policy "Praises are viewable by everyone." on public.praises
+create policy "Praises visibility policy" on public.praises
   for select using (
     exists (
       select 1 from public.users u
