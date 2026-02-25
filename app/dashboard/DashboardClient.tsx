@@ -83,17 +83,19 @@ function DashboardContent() {
   }, [activeTab, praises.length, sentPraises.length])
 
   useEffect(() => {
-    if (!user) return
+    if (!user?.id) return
+
+    const userId = user.id
+    const isOwner = user.isOwner ?? false
 
     const fetchPraises = async () => {
       const supabase = createClient()
-      const isOwner = user.isOwner ?? true
 
       // 1. 받은 칭찬 가져오기 (타인이거나 본인이거나 동일)
       const { data: receivedData } = await supabase
         .from('praises')
         .select('*')
-        .eq('receiver_id', user.id)
+        .eq('receiver_id', userId)
         .order('created_at', { ascending: false })
 
       if (receivedData && receivedData.length > 0) {
@@ -122,7 +124,7 @@ function DashboardContent() {
         const { data: sentData } = await supabase
           .from('praises')
           .select('*, users!receiver_id(nickname)')
-          .eq('sender_id', user.id)
+          .eq('sender_id', userId)
           .order('created_at', { ascending: false })
 
         if (sentData) {
@@ -134,7 +136,7 @@ function DashboardContent() {
     }
 
     fetchPraises()
-  }, [user])
+  }, [user?.id, user?.isOwner])
 
   useEffect(() => {
     if (!loading && !user && !error) {
@@ -693,20 +695,26 @@ function DashboardContent() {
               className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
               onClick={() => setSelectedPraise(null)}
               onKeyDown={(e) => e.key === 'Escape' && setSelectedPraise(null)}
-              role="dialog"
-              aria-modal="true"
             >
               <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="praise-modal-title"
                 className="shadow-hard animate-in zoom-in-95 relative w-full max-w-lg space-y-3 border-2 border-black bg-white p-6 duration-200"
                 onClick={(e) => e.stopPropagation()}
               >
                 <div className="flex items-start justify-between">
                   {activeTab === 'sent' ? (
-                    <span className="box-border inline-block border-2 border-black bg-black px-3 py-0.5 text-sm font-bold text-white">
+                    <span
+                      id="praise-modal-title"
+                      className="box-border inline-block border-2 border-black bg-black px-3 py-0.5 text-sm font-bold text-white"
+                    >
                       To. {selectedPraise.users?.nickname || '알 수 없는 수감자'}
                     </span>
                   ) : (
-                    <div className="text-base font-bold">#{selectedPraise.keyword}</div>
+                    <div id="praise-modal-title" className="text-base font-bold">
+                      #{selectedPraise.keyword}
+                    </div>
                   )}
                 </div>
 
@@ -723,6 +731,7 @@ function DashboardContent() {
                 </div>
 
                 <Button
+                  autoFocus
                   className="w-full bg-black text-white hover:bg-gray-800"
                   onClick={() => setSelectedPraise(null)}
                 >

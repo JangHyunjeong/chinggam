@@ -34,7 +34,13 @@ create policy "Users can update own profile." on public.users
 
 -- Praises: Public read, Public insert (for viral praises)
 create policy "Praises are viewable by everyone." on public.praises
-  for select using (true);
+  for select using (
+    exists (
+      select 1 from public.users u
+      where u.id = receiver_id
+        and (u.is_public = true OR u.id = (select auth.uid()))
+    )
+  );
 
 create policy "Anyone can insert praises." on public.praises
   for insert with check (true);
